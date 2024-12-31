@@ -113,7 +113,7 @@ function PointEvent({ index,label='', ...props }: { index: number;label:string; 
                     color="yellow"
                     anchorX="center"
                     anchorY="bottom"
-                    font={"/fonts/Inter_Tight/InterTight-VariableFont_wght.ttf"}
+                    // font={"/fonts/Inter_Tight/InterTight-VariableFont_wght.ttf"}
                     rotation={[-Math.PI / 2, 0, 0]} // Temporarily lock the Y-axis at 90', keeping the text aligned with the XZ plane
                     >
                     {label}

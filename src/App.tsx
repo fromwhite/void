@@ -51,7 +51,7 @@ export function App() {
         setIsInBbox(in_bbox);
       }
       
-    }, 1000);
+    }, 500);
   
     update();
   
