@@ -1,4 +1,3 @@
-// import "mapbox-gl/dist/mapbox-gl.css";
 import Map from "react-map-gl";
 import { Canvas } from "react-three-map";
 

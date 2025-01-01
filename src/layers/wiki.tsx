@@ -22,7 +22,7 @@ import {
 } from "@turf/turf";
 import { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-import { a, useSpring } from "@react-spring/three";
+// import { a, useSpring } from "@react-spring/three";
 import { X } from "../geist";
 import { ui } from "./context";
 
@@ -143,7 +143,7 @@ export const Markers = ({
             />
           ))}
         </Points>
-      </Coordinates>{" "}
+      </Coordinates>
       <ui.In>
         <WikiPortal
           isOpen={clickedIndex !== null}
@@ -207,13 +207,6 @@ const PointEvent = ({
     <group
       position={position}
       scale={[1, 1, 1]}
-      // onClick={(e) => {
-      //     console.log('Group clicked', e,index);
-      //     e.stopPropagation(),
-      //     setClick((state) => !state);
-      //   }}
-      // onPointerOver={(e) => (e.stopPropagation(), setHover(true))}
-      // onPointerOut={(e) => setHover(false)}
       onClick={onClick}
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}
@@ -223,7 +216,6 @@ const PointEvent = ({
 
       <Text
         scale={10}
-        // position={[props.position[0], props.position[1] + 2, props.position[2]]}
         fontSize={10}
         color={isClicked ? "lightblue" : isHovered ? "hotpink" : "orange"}
         anchorX="center"

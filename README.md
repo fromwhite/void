@@ -22,8 +22,9 @@ Map data by Google Photorealistic Tiles
 
 If the high cost of Photorealistic Tiles is prohibitive, try Sentinel3 instead.
 
-# todo: WiKI layer  
-Inspired by wikinearby: 
+## wikinearby
+
+Inspired by wikinearby:
 
 https://github.com/BrandonXLF/wikinearby
 

@@ -11,14 +11,12 @@ export default function Ctrl() {
   const setGoogleKey = state((s) => s.setGoogleKey);
   const base_map = state((s) => s.base_map);
   const setBasemap = state((s) => s.setBasemap);
-  const viewState = state((s) => s.viewState);
   const setViewState = state((s) => s.setViewState);
   const request_loader = state((s) => s.request_loader);
   const setRequestLoader = state((s) => s.setRequestLoader);
   const setBbox = state((s) => s.setBbox);
   const is_in_bbox = state((s) => s.is_in_bbox);
   const setIsInBbox = state((s) => s.setIsInBbox);
-  const wiki_list = state((s) => s.wiki_list);
   const setWikiList = state((s) => s.setWikiList);
 
   const addressLoaderRef = useRef(false);

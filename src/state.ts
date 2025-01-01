@@ -44,7 +44,6 @@ interface AppState {
     lon: number;
     list: any[];
   } | null;
-  // wiki_portal: number | null;
 
   setRequestLoader: (requestLoader: boolean) => void;
   setBasemap: (base_map: BaseMapKeys) => void;
