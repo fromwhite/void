@@ -44,6 +44,7 @@ interface AppState {
     lon: number;
     list: any[];
   } | null;
+  // wiki_portal: number | null;
 
   setRequestLoader: (requestLoader: boolean) => void;
   setBasemap: (base_map: BaseMapKeys) => void;
@@ -64,7 +65,7 @@ const initAppState: OmitMethods<AppState> = {
     latitude: -25.3444,
     longitude: 131.0369,
     zoom: 13,
-    pitch: 0
+    pitch: 0,
   },
   request_loader: false,
   base_map: "OpenStreetMap",
@@ -85,11 +86,10 @@ export const state = create<AppState>()(
       setMapboxKey: (mapbox_access_token: string) =>
         set({ mapbox_access_token }),
       setGoogleKey: (google_tile_key: string) => set({ google_tile_key }),
-      setViewState: (viewState: CoordinatesType) =>
-        set({ viewState }),
+      setViewState: (viewState: CoordinatesType) => set({ viewState }),
       setBbox: (bbox: number[]) => set({ bbox }),
       setIsInBbox: (is_in_bbox: boolean) => set({ is_in_bbox }),
-      setWikiList: (wiki_list: any ) => set({ wiki_list }),
+      setWikiList: (wiki_list: any) => set({ wiki_list }),
     }),
     {
       name: "void",

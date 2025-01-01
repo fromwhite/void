@@ -1,9 +1,8 @@
-import { Leva, useControls, LevaInputs,button } from "leva";
+import { Leva, useControls, LevaInputs, button } from "leva";
 import { state } from "./state";
 import { useState, useEffect, useRef } from "react";
-import { Loader,X } from './geist'
-import { query_wiki_nearby, get_bbox} from "./layers/wiki";
-
+import { Loader, X } from "./geist";
+import { query_wiki_nearby, get_bbox } from "./layers/wiki";
 
 export default function Ctrl() {
   const mapbox_access_token = state((s) => s.mapbox_access_token);
@@ -80,6 +79,7 @@ export default function Ctrl() {
       },
       provider: {
         value: base_map,
+        label: "Provider",
         options: providerOptions,
         onChange: (value) => {
           setBasemap(value);
@@ -89,7 +89,11 @@ export default function Ctrl() {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             if (position && position.coords) {
-              setViewState({zoom: 9.5, latitude: position.coords.latitude, longitude: position.coords.longitude });
+              setViewState({
+                zoom: 9.5,
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              });
             }
           },
           (error) => {
@@ -97,39 +101,51 @@ export default function Ctrl() {
           }
         );
       }),
-      "Wikipedia nearby": button(async () => {
-        setRequestLoader(true);
-        const { viewState } = state.getState();
-        const data = await query_wiki_nearby({
-          lat: viewState.latitude,
-          lon: viewState.longitude,
-        });
-        setRequestLoader(false);
-        if (!data) return
-        const bbox = await get_bbox(data)
-        setBbox(bbox)
-        setIsInBbox(true)
-        setWikiList(data)
-      },{
-        disabled: is_in_bbox
-      }),
+      "Wikipedia nearby": button(
+        async () => {
+          setRequestLoader(true);
+          const { viewState } = state.getState();
+          const data = await query_wiki_nearby({
+            lat: viewState.latitude,
+            lon: viewState.longitude,
+          });
+          setRequestLoader(false);
+          if (!data) return;
+          const bbox = await get_bbox(data);
+          setBbox(bbox);
+          setIsInBbox(true);
+          setWikiList(data);
+        },
+        {
+          disabled: is_in_bbox,
+        }
+      ),
     },
     {
       collapsed: true,
     },
-    [providerOptions, is_in_bbox],
-    
+    [providerOptions, is_in_bbox]
   );
 
   const [, setSearchAddress] = useControls(() => ({
-    "address": {
+    address: {
       value: "",
       type: LevaInputs.STRING,
       label: (
         <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
           <span>Geocoding</span>
-          { request_loader && <Loader size={16} style={{ animation: "spin 1s linear infinite" }} />}
-          <span onClick={() => setSearchAddress({address:""})} style={{ display: "flex", alignItems: "center" }}><X size={16} style={{ cursor: "pointer" }} /></span>
+          {request_loader && (
+            <Loader
+              size={16}
+              style={{ animation: "spin 1s linear infinite" }}
+            />
+          )}
+          <span
+            onClick={() => setSearchAddress({ address: "" })}
+            style={{ display: "flex", alignItems: "center" }}
+          >
+            <X size={16} style={{ cursor: "pointer" }} />
+          </span>
         </div>
       ),
       onChange: (value: string) => handleSearch(value),
@@ -137,17 +153,17 @@ export default function Ctrl() {
   }));
 
   const handleSearch = async (address: string) => {
-   if (addressLoaderRef.current || !address) return;
+    if (addressLoaderRef.current || !address) return;
     addressLoaderRef.current = true;
 
     setRequestLoader(true);
-  
+
     const currentBaseMap = state.getState().base_map;
     const currentMapboxAccessToken = state.getState().mapbox_access_token;
-  
+
     try {
       let fetchUrl;
-  
+
       if (currentBaseMap === "Mapbox" && currentMapboxAccessToken) {
         fetchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
           address
@@ -163,29 +179,28 @@ export default function Ctrl() {
 
       const response = await fetch(fetchUrl);
       const data = await response.json();
-  
+
       if (data && (data?.length > 0 || data?.features?.length > 0)) {
         if (currentBaseMap === "Mapbox") {
           const coordinates = data.features[0].geometry.coordinates;
           setViewState({
             latitude: coordinates[1],
             longitude: coordinates[0],
-            zoom: 9.5
+            zoom: 9.5,
           });
 
-          setSearchAddress({address:data.features[0].place_name})
+          setSearchAddress({ address: data.features[0].place_name });
         } else if (currentBaseMap === "OpenStreetMap") {
-          const {lat,lon} = data[0];
-          if (!lat || !lon) return
+          const { lat, lon } = data[0];
+          if (!lat || !lon) return;
           setViewState({
             latitude: Number(lat),
             longitude: Number(lon),
-            zoom: 9.5
+            zoom: 9.5,
           });
-          setSearchAddress({address:data[0].display_name})
+          setSearchAddress({ address: data[0].display_name });
         }
       }
-
     } catch (error) {
       console.error("Search failed:", error);
     } finally {

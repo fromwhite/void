@@ -5,135 +5,304 @@
  */
 
 import { Coordinates, coordsToVector3 } from "react-three-map/maplibre";
-import { Points, Point, PointMaterial, Billboard, Text } from '@react-three/drei'
-import { point, featureCollection, bbox, bboxPolygon, booleanPointInPolygon } from '@turf/turf';
-import { useState } from "react";
+import {
+  Points,
+  Point,
+  PointMaterial,
+  Billboard,
+  Text,
+  useCursor,
+} from "@react-three/drei";
+import {
+  point,
+  featureCollection,
+  bbox,
+  bboxPolygon,
+  booleanPointInPolygon,
+} from "@turf/turf";
+import { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
+import { a, useSpring } from "@react-spring/three";
+import { X } from "../geist";
+import { ui } from "./context";
 
-export const query_wiki_nearby = async ({lat,lon}:{lat: number;lon: number}) => {
-    const original = `https://wikinearby.toolforge.org/api/nearby?q=${lat},${lon}&lang=en&offset=0`;
-	const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(original)}`;
-    const response = await fetch(proxyUrl).then((res) => res.json());
-    return response;
+export const query_wiki_nearby = async ({
+  lat,
+  lon,
+}: {
+  lat: number;
+  lon: number;
+}) => {
+  const original = `https://wikinearby.toolforge.org/api/nearby?q=${lat},${lon}&lang=en&offset=0`;
+  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(original)}`;
+  const response = await fetch(proxyUrl).then((res) => res.json());
+  return response;
 };
 
-export const get_bbox = async ({lat,lon,list, padding = 0.01}:{lat: number;lon: number;list: any;padding: number}) => {
-    // convert GeoJSON 
-    const points = list.map((item: any) => point([parseFloat(item.lon), parseFloat(item.lat)]));
+export const get_bbox = async ({
+  lat,
+  lon,
+  list,
+  padding = 0.01,
+}: {
+  lat: number;
+  lon: number;
+  list: any;
+  padding: number;
+}) => {
+  // convert GeoJSON
+  const points = list.map((item: any) =>
+    point([parseFloat(item.lon), parseFloat(item.lat)])
+  );
 
-    // FeatureCollection
-    const feature_collection = featureCollection(points);
+  // FeatureCollection
+  const feature_collection = featureCollection(points);
 
-    // compute bounding box
-    const bounds = bbox(feature_collection);
+  // compute bounding box
+  const bounds = bbox(feature_collection);
 
-    // add padding
-    const minLon = bounds[0] - padding;
-    const maxLon = bounds[2] + padding;
-    const minLat = bounds[1] - padding;
-    const maxLat = bounds[3] + padding;
+  // add padding
+  const minLon = bounds[0] - padding;
+  const maxLon = bounds[2] + padding;
+  const minLat = bounds[1] - padding;
+  const maxLat = bounds[3] + padding;
 
-    return [
-        minLon,
-        minLat,
-        maxLon,
-        maxLat,
-    ];
-}
+  return [minLon, minLat, maxLon, maxLat];
+};
 
-export const is_position_in_bbox = (lat: number, lon: number, bbox: number[]) => {
-    const pt = point([lon, lat]);
-    const bboxPoly = bboxPolygon(bbox as [number, number, number, number]);
-    return booleanPointInPolygon(pt, bboxPoly);
-}
+export const is_position_in_bbox = (
+  lat: number,
+  lon: number,
+  bbox: number[]
+) => {
+  const pt = point([lon, lat]);
+  const bboxPoly = bboxPolygon(bbox as [number, number, number, number]);
+  return booleanPointInPolygon(pt, bboxPoly);
+};
 
-export const markers = ({lat,lon,list}: {lat: number;lon: number;list: any[]}) => {
-    const center = {
-        longitude: Number(lon),
-        latitude: Number(lat),
-    };
+export const Markers = ({
+  lat,
+  lon,
+  list,
+}: {
+  lat: number;
+  lon: number;
+  list: any[];
+}) => {
+  if (!list || list.length === 0) return null;
 
-    return (<Coordinates key={1} latitude={lat} longitude={lon}>
+  const center = {
+    longitude: Number(lon),
+    latitude: Number(lat),
+  };
+
+  const [clickedIndex, setClickedIndex] = useState<number | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const handlePointClick = (index: number) => {
+    setClickedIndex(index);
+  };
+
+  const handlePointHover = (index: number) => {
+    setHoveredIndex(index);
+  };
+
+  useEffect(() => {
+    setClickedIndex(null);
+    setHoveredIndex(null);
+  }, [list]);
+
+  return (
+    <>
+      <Coordinates key={1} latitude={lat} longitude={lon}>
         <Points limit={list.length}>
-            <PointMaterial
-                transparent
-                vertexColors
-                size={10}
-                sizeAttenuation={false}
-                depthWrite={false}
-                toneMapped={false}
+          <PointMaterial
+            transparent
+            vertexColors
+            size={6}
+            sizeAttenuation={false}
+            depthWrite={false}
+            toneMapped={false}
+            depthTest={false}
+            renderOrder={1}
+          />
+          {list.map((item: any, i: number) => (
+            <PointEvent
+              key={i}
+              index={i}
+              label={item.desc}
+              position={coordsToVector3(
+                { latitude: Number(item.lat), longitude: Number(item.lon) },
+                center
+              )}
+              isClicked={clickedIndex === i}
+              isHovered={hoveredIndex === i}
+              onClick={() => handlePointClick(i)}
+              onPointerOver={() => handlePointHover(i)}
+              onPointerOut={() => setHoveredIndex(null)}
             />
-            {list.map((item: any, i: number) => (
-                <PointEvent
-                    key={i}
-                    index={i}
-                    label={item.desc}
-                    position={coordsToVector3(
-                        { latitude: Number(item.lat), longitude: Number(item.lon) },
-                        center
-                    )}
-                />
-            ))}
+          ))}
         </Points>
-    </Coordinates>);
-}
+      </Coordinates>{" "}
+      <ui.In>
+        <WikiPortal
+          isOpen={clickedIndex !== null}
+          src={list[clickedIndex ?? -1]?.page ?? ""}
+          onClose={() => setClickedIndex(null)}
+        />
+      </ui.In>
+    </>
+  );
+};
 
-function PointEvent({ index,label='', ...props }: { index: number;label:string; position: [number, number, number] }) {
-    const [hovered, setHover] = useState(false)
-    const [clicked, setClick] = useState(false)
+const PointEvent = ({
+  index,
+  label = "",
+  position,
+  isClicked,
+  isHovered,
+  onClick,
+  onPointerOver,
+  onPointerOut,
+}: {
+  index: number;
+  label: string;
+  position: [number, number, number];
+  isClicked: boolean;
+  isHovered: boolean;
+  onClick: () => void;
+  onPointerOver: () => void;
+  onPointerOut: () => void;
+}) => {
+  // useCursor(hovered, "pointer");
 
-    /**
-     * TODO: POI text
-     * 1. Localize the text:
-     *    - Dynamically adapt the text to the selected language or locale.
-     *    - Implement tokenized search for self-hosted Wiki data and ensure proper data separation.
-     * 
-     * 2. Lock Z-axis to the map:
-     *    - Align the text with the map surface and keep it consistent with the coordinate plane.
-     *    - Ensure proper orientation during user interactions like rotation or panning.
-     * 
-     * 3. Implement zoom scaling:
-     *    - Dynamically adjust text size based on the zoom level.
-     *    - Prevent text from becoming disproportionately large or small during zoom interactions.
-     */
+  /**
+   * TODO: POI text
+   * 1. Localize the text:
+   *    - Dynamically adapt the text to the selected language or locale.
+   *    - Implement tokenized search for self-hosted Wiki data and ensure proper data separation.
+   *
+   * 2. Lock Z-axis to the map:
+   *    - Align the text with the map surface and keep it consistent with the coordinate plane.
+   *    - Ensure proper orientation during user interactions like rotation or panning.
+   *
+   * 3. Implement zoom scaling:
+   *    - Dynamically adjust text size based on the zoom level.
+   *    - Prevent text from becoming disproportionately large or small during zoom interactions.
+   */
 
-    /**
-     * TODO: POI event
-     * 1. Add spring-based physics interactions to enhance visual feedback during text scaling transitions.
-     * 2. Adapt to different styles for OSM minimalist maps and Mapbox satellite tiles.
-     * 3. Provide TSL animations and VFX options for enriched user experience.
-     */
+  /**
+   * TODO: POI event
+   * 1. Add spring-based physics interactions to enhance visual feedback during text scaling transitions.
+   * 2. Adapt to different styles for OSM minimalist maps and Mapbox satellite tiles.
+   * 3. Provide TSL animations and VFX options for enriched user experience.
+   */
 
-    return (
-        <group scale={[1, 1, 1]}>
-            {/* <Billboard follow lockY> */}
-                <Text
-                    {...props}
-                    // position={[props.position[0], props.position[1] + 2, props.position[2]]}
-                    fontSize={10}
-                    color="yellow"
-                    anchorX="center"
-                    anchorY="bottom"
-                    // font={"/fonts/Inter_Tight/InterTight-VariableFont_wght.ttf"}
-                    rotation={[-Math.PI / 2, 0, 0]} // Temporarily lock the Y-axis at 90', keeping the text aligned with the XZ plane
-                    >
-                    {label}
-                </Text>
-            {/* </Billboard> */}
-            <Point
-                {...props}
-                scale={[10, 10, 10]} 
-                color={clicked ? 'lightblue' : hovered ? 'hotpink' : 'orange'}
-                onPointerOver={(e) => ( setHover(true))}
-                onPointerOut={(e) => setHover(false)}
-                // onClick={(e) => (setClick((state) => !state))}
-                onClick={(e) => {
-                    console.log('Point clicked', e);
-                    setClick((state) => !state);
-                  }}
-                  // @ts-ignore
-                  interactive
-                >
-            </Point>
-        </group>
-    )
-  }
+  // const { size, color } = useSpring({
+  //     size: (clicked || hovered) ? 1.5 : 1,
+  //     color: clicked ? 'lightblue' : hovered ? 'hotpink' : 'orange',
+  // });
+
+  return (
+    <group
+      position={position}
+      scale={[1, 1, 1]}
+      // onClick={(e) => {
+      //     console.log('Group clicked', e,index);
+      //     e.stopPropagation(),
+      //     setClick((state) => !state);
+      //   }}
+      // onPointerOver={(e) => (e.stopPropagation(), setHover(true))}
+      // onPointerOut={(e) => setHover(false)}
+      onClick={onClick}
+      onPointerOver={onPointerOver}
+      onPointerOut={onPointerOut}
+    >
+      {/* <a.mesh> */}
+      {/* <Billboard follow lockY> */}
+
+      <Text
+        scale={10}
+        // position={[props.position[0], props.position[1] + 2, props.position[2]]}
+        fontSize={10}
+        color={isClicked ? "lightblue" : isHovered ? "hotpink" : "orange"}
+        anchorX="center"
+        anchorY="bottom"
+        // font={"/fonts/Inter_Tight/InterTight-VariableFont_wght.ttf"}
+        material-depthTest={false}
+        rotation={[-Math.PI / 2, 0, 0]} // Temporarily lock the Y-axis at 90', keeping the text aligned with the XZ plane
+      >
+        {label}
+      </Text>
+      {/* </Billboard> */}
+      {/* </a.mesh> */}
+      {/* <a.mesh> */}
+      <Point
+        // scale={[10, 10, 10]}
+        size={isClicked || isHovered ? 1.5 : 1}
+        color={isClicked ? "lightblue" : isHovered ? "hotpink" : "orange"}
+      ></Point>
+      {/* </a.mesh> */}
+    </group>
+  );
+};
+
+export const WikiPortal = ({
+  isOpen,
+  src,
+  onClose,
+}: {
+  isOpen: boolean;
+  src: string;
+  onClose: () => void;
+}) => {
+  if (!isOpen || !src) return null;
+
+  return ReactDOM.createPortal(
+    <div
+      style={{
+        position: "fixed",
+        top: "5vh",
+        left: "20px",
+        width: "400px",
+        height: "90vh",
+        borderRadius: "10px",
+        backgroundColor: "floralwhite",
+        boxShadow: "0 0 9px 0 rgba(0, 0, 0, 0.2)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 10,
+        willChange: "transform, opacity",
+      }}
+    >
+      <button
+        style={{
+          position: "absolute",
+          top: "14px",
+          right: "10px",
+          padding: "0",
+          cursor: "pointer",
+          backgroundColor: "transparent",
+          border: "none",
+          fontSize: "20px",
+          color: "black",
+          outline: "none",
+        }}
+        onClick={onClose}
+      >
+        <X />
+      </button>
+      <iframe
+        src={`https://en.m.wikipedia.org/wiki/${src}`}
+        width="100%"
+        height="100%"
+        frameBorder="0"
+        allow="encrypted-media; picture-in-picture"
+        sandbox="allow-same-origin allow-scripts"
+        style={{ borderRadius: "10px" }}
+      ></iframe>
+    </div>,
+    document.body
+  );
+};

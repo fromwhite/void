@@ -12,6 +12,7 @@
   "dependencies": {
     "3d-tiles-renderer": "^0.4.0",
     "@geist-ui/icons": "^1.0.2",
+    "@react-spring/three": "^9.7.5",
     "@react-three/drei": "^9.120.1",
     "@react-three/fiber": "^8.17.10",
     "@turf/bbox": "^7.2.0",
@@ -27,6 +28,7 @@
     "react-three-map": "^0.8.2",
     "three": "^0.171.0",
     "three-stdlib": "^2.34.0",
+    "tunnel-rat": "^0.1.2",
     "wouter": "^3.3.5",
     "zustand": "^5.0.2"
   },

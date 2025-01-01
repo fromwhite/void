@@ -28,8 +28,7 @@ export default function OpenStreetMap({
       doubleClickZoom={false}
       onMove={(evt) => onViewStateChange(evt.viewState)}
     >
-    {/* @ts-ignore */}
-      <Canvas latitude={viewState.latitude} longitude={viewState.longitude} canvas={{ raycaster: {params: { Points: { threshold: 0.5 }} }}}>
+      <Canvas latitude={viewState.latitude} longitude={viewState.longitude}>
         {children}
       </Canvas>
     </Map>
