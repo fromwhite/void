@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import OpenStreetMap from "./open_street_map";
 import MapBox from "./mapbox";
+import Aerial from "./photorealistic_tiles";
 import { state } from "../state";
 import { im } from "./context";
 
@@ -29,6 +30,8 @@ export const BaseMap = ({
         return OpenStreetMap;
       case "Mapbox":
         return MapBox;
+      case "Google":
+        return Aerial;
       default:
         return null;
     }

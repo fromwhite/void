@@ -13,6 +13,8 @@ import {
   Text,
   useCursor,
 } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 import {
   point,
   featureCollection,
@@ -20,7 +22,7 @@ import {
   bboxPolygon,
   booleanPointInPolygon,
 } from "@turf/turf";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 // import { a, useSpring } from "@react-spring/three";
 import { X } from "../geist";
@@ -105,6 +107,12 @@ export const Markers = ({
 
   const handlePointHover = (index: number) => {
     setHoveredIndex(index);
+    document.querySelectorAll("canvas")[0].style.cursor = "pointer";
+  };
+
+  const handlePointOut = () => {
+    setHoveredIndex(null);
+    document.querySelectorAll("canvas")[0].style.cursor = "grab";
   };
 
   useEffect(() => {
@@ -126,22 +134,25 @@ export const Markers = ({
             depthTest={false}
             renderOrder={1}
           />
-          {list.map((item: any, i: number) => (
-            <PointEvent
-              key={i}
-              index={i}
-              label={item.desc}
-              position={coordsToVector3(
-                { latitude: Number(item.lat), longitude: Number(item.lon) },
-                center
-              )}
-              isClicked={clickedIndex === i}
-              isHovered={hoveredIndex === i}
-              onClick={() => handlePointClick(i)}
-              onPointerOver={() => handlePointHover(i)}
-              onPointerOut={() => setHoveredIndex(null)}
-            />
-          ))}
+          {list.map(
+            (item: any, i: number) =>
+              item.desc && (
+                <PointEvent
+                  key={i}
+                  index={i}
+                  label={item.desc}
+                  position={coordsToVector3(
+                    { latitude: Number(item.lat), longitude: Number(item.lon) },
+                    center
+                  )}
+                  isClicked={clickedIndex === i}
+                  isHovered={hoveredIndex === i}
+                  onClick={() => handlePointClick(i)}
+                  onPointerOver={() => handlePointHover(i)}
+                  onPointerOut={handlePointOut}
+                />
+              )
+          )}
         </Points>
       </Coordinates>
       <ui.In>
@@ -203,6 +214,10 @@ const PointEvent = ({
   //     color: clicked ? 'lightblue' : hovered ? 'hotpink' : 'orange',
   // });
 
+  // todo: Marker Rotation
+  // const textRef = useRef<THREE.Object3D>(null!)
+  // const { camera, size } = useThree();
+
   return (
     <group
       position={position}
@@ -215,8 +230,9 @@ const PointEvent = ({
       {/* <Billboard follow lockY> */}
 
       <Text
+        // ref={textRef}
         scale={10}
-        fontSize={10}
+        fontSize={4}
         color={isClicked ? "lightblue" : isHovered ? "hotpink" : "orange"}
         anchorX="center"
         anchorY="bottom"

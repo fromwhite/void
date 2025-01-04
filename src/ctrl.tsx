@@ -132,12 +132,12 @@ export default function Ctrl() {
       label: (
         <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
           <span>Geocoding</span>
-          {request_loader && (
+          {/* {request_loader && (
             <Loader
               size={16}
               style={{ animation: "spin 1s linear infinite" }}
             />
-          )}
+          )} */}
           <span
             onClick={() => setSearchAddress({ address: "" })}
             style={{ display: "flex", alignItems: "center" }}
@@ -166,7 +166,10 @@ export default function Ctrl() {
         fetchUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
           address
         )}.json?access_token=${currentMapboxAccessToken}&limit=1`;
-      } else if (currentBaseMap === "OpenStreetMap") {
+      } else if (
+        currentBaseMap === "OpenStreetMap" ||
+        currentBaseMap === "Google"
+      ) {
         fetchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
           address
         )}&limit=1&addressdetails=1`;
@@ -188,7 +191,10 @@ export default function Ctrl() {
           });
 
           setSearchAddress({ address: data.features[0].place_name });
-        } else if (currentBaseMap === "OpenStreetMap") {
+        } else if (
+          currentBaseMap === "OpenStreetMap" ||
+          currentBaseMap === "Google"
+        ) {
           const { lat, lon } = data[0];
           if (!lat || !lon) return;
           setViewState({

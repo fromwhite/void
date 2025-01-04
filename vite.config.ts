@@ -19,4 +19,9 @@ export default defineConfig({
       },
     },
   },
+  resolve: {
+    alias: {
+      "3d-tiles-renderer/plugins": "/node_modules/3d-tiles-renderer/src/plugins",
+    },
+  },
 });

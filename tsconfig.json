@@ -14,8 +14,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "3d-tiles-renderer/plugins/*": [
+        "node_modules/3d-tiles-renderer/src/plugins/*"
+      ]
+    }
   },
-  "include": ["src"],
+  "include": ["src", "src/types/**/*.d.ts"],
   "exclude": ["node_modules", "server", "dist"]
 }

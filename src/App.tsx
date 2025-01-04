@@ -69,7 +69,9 @@ export function App() {
         >
           <Markers {...(wiki_list ?? { lat: 0, lon: 0, list: [] })} />
         </BaseMap>
-        <span className={style.credits}>{credits[base_map]}</span>
+        <span data-role="credits" className={style.credits}>
+          {credits[base_map]}
+        </span>
         {request_loader && (
           <Loader
             size={16}
